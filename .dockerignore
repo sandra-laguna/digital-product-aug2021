@@ -1,0 +1,17 @@
+.git/
+.gitignore
+.gitlab-ci.yml
+
+.dockerignore
+Dockerfile
+docker-compose.yml
+
+.editorconfig
+.prettierrc
+
+CHANGELOG.md
+README.md
+VERSION
+Makefile
+
+node_modules

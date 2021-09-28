@@ -1,0 +1,53 @@
+stages:
+  - deploy
+
+variables:
+  NETWORK_NAME: br0
+  DOMAIN: theseedsquad.com
+  IMAGE_NAME: $DOMAIN/website:latest
+  CONTAINER_IP: 172.18.0.122
+  CONTAINER_NAME: theseedsquad-website
+
+deploy-sandbox:
+  stage: deploy
+  only:
+    - develop
+  tags:
+    - apps
+    - sandbox
+  variables:
+    DOMAIN: sandbox.theseedsquad.com
+  before_script:
+    - docker build --build-arg="DOMAIN=$DOMAIN" --cache-from="$IMAGE_NAME" -t $IMAGE_NAME .
+  script:
+    - docker rm -f $CONTAINER_NAME || true
+    - docker run
+      --restart="always"
+      --network="$NETWORK_NAME"
+      --ip="$CONTAINER_IP"
+      --log-opt="max-size=20M"
+      --log-opt="max-file=5"
+      --name="$CONTAINER_NAME"
+      -e="DOMAIN=$DOMAIN"
+      -d $IMAGE_NAME
+
+deploy-live:
+  stage: deploy
+  only:
+    - tags
+  tags:
+    - apps
+    - live
+  before_script:
+    - docker build --build-arg="DOMAIN=$DOMAIN" --cache-from="$IMAGE_NAME" -t $IMAGE_NAME .
+  script:
+    - docker rm -f $CONTAINER_NAME || true
+    - docker run
+      --restart="always"
+      --network="$NETWORK_NAME"
+      --ip="$CONTAINER_IP"
+      --log-opt="max-size=20M"
+      --log-opt="max-file=5"
+      --name="$CONTAINER_NAME"
+      -e="DOMAIN=$DOMAIN"
+      -d $IMAGE_NAME
